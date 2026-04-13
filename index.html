@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>VoltRide Aceh | Transportasi Listrik untuk Aceh Hijau</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; }
+        body { font-family: 'Inter', sans-serif; background: #0a2e1c; color: #ffffff; overflow-x: hidden; }
+        
+        /* LIGHT THEME - Warna teks diperbaiki */
+        body.light-theme { background: #f0f4f0; color: #1a2e1a; }
+        body.light-theme .particles { background: radial-gradient(circle at 20% 50%, #d4e8d4, #c0dcc0, #a8cca8); }
+        body.light-theme .navbar { background: rgba(255, 255, 255, 0.95); border-bottom: 1px solid rgba(0, 150, 80, 0.2); }
+        body.light-theme .navbar a { color: #1a4a1a; }
+        body.light-theme .stat-card, body.light-theme .service-card, body.light-theme .feature-item,
+        body.light-theme .history-item, body.light-theme .booking-widget, body.light-theme .notes-panel,
+        body.light-theme .mangrove-card, body.light-theme .payment-section, body.light-theme .distance-info {
+            background: rgba(0, 0, 0, 0.05); border-color: rgba(0, 150, 80, 0.2); color: #1a2e1a;
+        }
+        body.light-theme .hero-left p, body.light-theme .service-card p, body.light-theme .feature-item p,
+        body.light-theme .history-route, body.light-theme .history-notes, body.light-theme .selected-notes-title {
+            color: #3a5e3a;
+        }
+        body.light-theme .input-modern { background: rgba(0, 0, 0, 0.05); color: #1a2e1a; border-color: rgba(0, 150, 80, 0.3); }
+        body.light-theme .input-modern::placeholder { color: #8aa88a; }
+        body.light-theme .chat-panel { background: linear-gradient(135deg, #ffffff, #e8f0e8); border: 1px solid rgba(0,150,80,0.3); }
+        body.light-theme .chat-message.driver { background: rgba(0, 0, 0, 0.08); color: #1a2e1a; }
+        body.light-theme .chat-header, body.light-theme .chat-input-area { background: rgba(0, 0, 0, 0.05); }
+        body.light-theme .chat-input-area input { background: rgba(0, 0, 0, 0.05); color: #1a2e1a; border-color: rgba(0,150,80,0.3); }
+        body.light-theme .price-tag { color: #0a2e1c; }
+        body.light-theme .toast-notification { color: #0a2e1c; }
+        body.light-theme .summary-card { background: linear-gradient(135deg, #e8f0e8, #d4e8d4); color: #1a2e1a; border-color: #2ecc71; }
+        body.light-theme .clear-btn { color: #ff6464; }
+        body.light-theme .note-tag { color: #0a2e1c; background: rgba(0,150,80,0.15); }
+        
+        .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 20% 50%, #0a2e1c, #1a5c3a, #0d3b22); }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 1rem 5%; background: rgba(10, 46, 28, 0.7); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0, 255, 150, 0.2); position: sticky; top: 0; z-index: 1000; flex-wrap: wrap; }
+        .logo { font-size: 1.5rem; font-weight: 800; font-family: 'Playfair Display', serif; }
+        .logo span:first-child { color: #00ff96; text-shadow: 0 0 20px rgba(0,255,150,0.5); }
+        .logo span:last-child { color: #2ecc71; }
+        .nav-links { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; }
+        .nav-links a { text-decoration: none; color: #e0e0e0; font-weight: 500; font-size: 0.9rem; cursor: pointer; }
+        .nav-links a:hover { color: #00ff96; }
+        .btn-cyber { background: linear-gradient(135deg, #00ff96, #2ecc71); border: none; padding: 0.5rem 1.2rem; border-radius: 40px; color: #0a2e1c; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+        .theme-toggle { background: rgba(0,255,150,0.2); border: 1px solid rgba(0,255,150,0.3); border-radius: 40px; padding: 0.4rem 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; }
+        .hero { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 3rem 5% 4rem; }
+        .hero-left { flex: 1; }
+        .badge { background: rgba(0,255,150,0.2); border: 1px solid rgba(0,255,150,0.5); border-radius: 50px; padding: 0.3rem 0.8rem; display: inline-block; font-size: 0.7rem; margin-bottom: 1rem; }
+        .hero-left h1 { font-size: 3rem; font-weight: 800; line-height: 1.2; margin-bottom: 1rem; font-family: 'Playfair Display', serif; }
+        .gradient-green { background: linear-gradient(135deg, #00ff96, #2ecc71); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .hero-left p { font-size: 0.95rem; color: #b0b0b0; line-height: 1.5; margin-bottom: 1.5rem; max-width: 90%; }
+        .hero-stats { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .stat-card { background: rgba(255,255,255,0.03); border-radius: 15px; padding: 0.6rem 1rem; backdrop-filter: blur(10px); border: 1px solid rgba(0,255,150,0.2); }
+        .stat-number { font-size: 1.3rem; font-weight: 800; color: #00ff96; }
+        .hero-right { flex: 0.8; }
+        .car-card { background: linear-gradient(135deg, rgba(0,255,150,0.1), rgba(46,204,113,0.05)); border-radius: 30px; padding: 1.5rem; backdrop-filter: blur(20px); border: 1px solid rgba(0,255,150,0.3); text-align: center; animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }
+        .car-3d { font-size: 5rem; filter: drop-shadow(0 0 20px rgba(0,255,150,0.5)); }
+        .services { padding: 3rem 5%; }
+        .section-title { text-align: center; font-size: 1.8rem; font-weight: 700; margin-bottom: 2rem; font-family: 'Playfair Display', serif; }
+        .service-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.2rem; max-width: 1000px; margin: 0 auto; }
+        .service-card { background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)); border-radius: 20px; padding: 1.2rem; text-align: center; cursor: pointer; border: 1px solid rgba(0,255,150,0.1); transition: all 0.3s; }
+        .service-card:hover { transform: translateY(-5px); border-color: #00ff96; }
+        .service-icon { font-size: 2rem; color: #00ff96; margin-bottom: 0.5rem; }
+        .booking-section { padding: 3rem 5%; background: linear-gradient(180deg, transparent, rgba(0,255,150,0.05)); }
+        .booking-widget { max-width: 700px; margin: 0 auto; background: linear-gradient(135deg, rgba(0,255,150,0.1), rgba(46,204,113,0.05)); backdrop-filter: blur(20px); border-radius: 30px; padding: 1.5rem; border: 1px solid rgba(0,255,150,0.3); }
+        .booking-widget h2 { text-align: center; margin-bottom: 1rem; }
+        .input-modern { width: 100%; padding: 0.7rem 1rem; margin-bottom: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(0,255,150,0.3); border-radius: 15px; color: white; font-size: 0.85rem; }
+        .input-modern:focus { outline: none; border-color: #00ff96; }
+        .map-container { margin-bottom: 0.8rem; border-radius: 15px; overflow: hidden; }
+        #routeMap { height: 180px; width: 100%; background: #1a3a2a; }
+        .distance-info { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); border-radius: 15px; padding: 0.5rem 1rem; margin-bottom: 0.8rem; }
+        .price-tag { background: linear-gradient(135deg, #00ff96, #2ecc71); border-radius: 15px; padding: 0.7rem; text-align: center; margin: 0.8rem 0; font-weight: 800; font-size: 1rem; color: #0a2e1c; cursor: pointer; transition: all 0.3s; }
+        .price-tag:hover { transform: scale(1.02); }
+        .price-detail { font-size: 0.65rem; opacity: 0.8; margin-top: 0.2rem; }
+        .payment-section { margin: 0.8rem 0; padding: 0.8rem; background: rgba(0,0,0,0.3); border-radius: 15px; }
+        .payment-title { font-size: 0.8rem; margin-bottom: 0.5rem; color: #00ff96; }
+        .payment-options { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .payment-option { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.4rem 1rem; background: rgba(0,255,150,0.1); border: 1px solid rgba(0,255,150,0.3); border-radius: 30px; font-size: 0.8rem; transition: all 0.2s; }
+        .payment-option.active { background: linear-gradient(135deg, #00ff96, #2ecc71); color: #0a2e1c; border-color: transparent; }
+        .notes-panel { margin-top: 1rem; background: rgba(0, 0, 0, 0.3); border-radius: 15px; padding: 0.8rem; border: 1px solid rgba(0,255,150,0.15); }
+        .notes-header { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.6rem; color: #00ff96; font-weight: 600; font-size: 0.8rem; }
+        .notes-options { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.6rem; }
+        .note-chip { background: rgba(0,255,150,0.1); border: 1px solid rgba(0,255,150,0.3); border-radius: 30px; padding: 0.25rem 0.7rem; font-size: 0.7rem; cursor: pointer; transition: all 0.2s; }
+        .note-chip.active { background: linear-gradient(135deg, #00ff96, #2ecc71); color: #0a2e1c; }
+        .custom-note { display: flex; gap: 0.4rem; margin-top: 0.5rem; }
+        .custom-note input { flex: 1; padding: 0.4rem 0.7rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(0,255,150,0.3); border-radius: 15px; color: white; font-size: 0.75rem; }
+        .custom-note button { background: rgba(0,255,150,0.2); border: 1px solid rgba(0,255,150,0.3); border-radius: 15px; padding: 0.4rem 0.8rem; font-size: 0.7rem; color: #00ff96; cursor: pointer; }
+        .selected-notes { margin-top: 0.6rem; padding-top: 0.5rem; border-top: 1px solid rgba(0,255,150,0.15); }
+        .selected-notes-title { font-size: 0.65rem; color: #888; margin-bottom: 0.3rem; }
+        .note-tag { display: inline-block; background: rgba(0,255,150,0.15); border-radius: 15px; padding: 0.2rem 0.6rem; margin: 0.15rem 0.25rem; font-size: 0.7rem; color: #00ff96; cursor: pointer; }
+        .history-section { padding: 3rem 5%; background: rgba(0,0,0,0.2); }
+        .history-container { max-width: 800px; margin: 0 auto; }
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .history-title { font-size: 1.5rem; font-weight: 700; }
+        .clear-btn { background: rgba(255,100,100,0.2); border: 1px solid rgba(255,100,100,0.5); padding: 0.4rem 1rem; border-radius: 20px; color: #ff6464; cursor: pointer; }
+        .history-list { max-height: 400px; overflow-y: auto; padding-right: 0.5rem; }
+        .history-list::-webkit-scrollbar { width: 5px; }
+        .history-list::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .history-list::-webkit-scrollbar-thumb { background: #00ff96; border-radius: 10px; }
+        .history-item { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 0.8rem 1rem; margin-bottom: 0.8rem; border-left: 3px solid #00ff96; }
+        .history-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; }
+        .history-service { font-weight: 700; color: #00ff96; font-size: 0.85rem; }
+        .history-date { font-size: 0.65rem; color: #888; }
+        .history-route { font-size: 0.8rem; color: #ccc; margin-bottom: 0.3rem; }
+        .history-price { font-size: 0.85rem; font-weight: 700; color: #00ff96; }
+        .empty-history { text-align: center; padding: 2rem; color: #888; background: rgba(255,255,255,0.03); border-radius: 20px; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.2rem; max-width: 1100px; margin: 0 auto; }
+        .feature-item { background: rgba(255,255,255,0.03); border-radius: 20px; padding: 1.2rem; border: 1px solid rgba(0,255,150,0.1); }
+        .feature-icon { font-size: 1.8rem; color: #00ff96; margin-bottom: 0.5rem; }
+        .mangrove-section { padding: 2rem 5%; text-align: center; }
+        .mangrove-card { max-width: 600px; margin: 0 auto; background: rgba(0,255,150,0.05); border-radius: 25px; padding: 1.2rem; border: 1px solid rgba(0,255,150,0.2); }
+        .mangrove-counter { font-size: 2rem; font-weight: 800; color: #00ff96; margin: 0.5rem 0; }
+        .chat-widget { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
+        .chat-button { width: 55px; height: 55px; background: linear-gradient(135deg, #00ff96, #2ecc71); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 5px 20px rgba(0,255,150,0.3); }
+        .chat-button i { font-size: 1.5rem; color: #0a2e1c; }
+        .chat-panel { position: absolute; bottom: 70px; right: 0; width: 350px; height: 500px; background: linear-gradient(135deg, #0a2e1c, #1a5c3a); border-radius: 20px; border: 1px solid rgba(0,255,150,0.3); display: none; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .chat-panel.active { display: flex; }
+        .chat-header { padding: 1rem; background: rgba(0,0,0,0.3); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,255,150,0.2); font-weight: 600; }
+        .chat-messages { flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; }
+        .chat-message { max-width: 85%; padding: 0.5rem 0.8rem; border-radius: 15px; font-size: 0.75rem; line-height: 1.4; }
+        .chat-message.user { align-self: flex-end; background: linear-gradient(135deg, #00ff96, #2ecc71); color: #0a2e1c; }
+        .chat-message.driver { align-self: flex-start; background: rgba(255,255,255,0.1); color: #ffffff; }
+        .chat-input-area { display: flex; padding: 0.8rem; gap: 0.5rem; border-top: 1px solid rgba(0,255,150,0.2); background: rgba(0,0,0,0.2); }
+        .chat-input-area input { flex: 1; padding: 0.5rem; border-radius: 20px; border: 1px solid rgba(0,255,150,0.3); background: rgba(0,0,0,0.3); color: white; font-size: 0.8rem; }
+        .chat-input-area input::placeholder { color: #aaa; }
+        .chat-input-area button { background: linear-gradient(135deg, #00ff96, #2ecc71); border: none; padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; }
+        .order-summary { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 2000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; }
+        .order-summary.active { opacity: 1; visibility: visible; }
+        .summary-card { background: linear-gradient(135deg, #0a2e1c, #1a5c3a); border-radius: 30px; padding: 1.5rem; max-width: 450px; width: 90%; border: 1px solid rgba(0,255,150,0.3); }
+        .close-summary { background: linear-gradient(135deg, #00ff96, #2ecc71); border: none; padding: 0.6rem; border-radius: 25px; width: 100%; color: #0a2e1c; font-weight: 700; cursor: pointer; margin-top: 0.8rem; }
+        .dana-qr-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); z-index: 3000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .dana-qr-modal.active { opacity: 1; visibility: visible; }
+        .qr-card { background: white; border-radius: 30px; padding: 2rem; max-width: 350px; width: 90%; text-align: center; color: #1a2e1a; }
+        .qr-card i { font-size: 4rem; color: #00ff96; margin-bottom: 1rem; }
+        .qr-code { width: 200px; height: 200px; background: linear-gradient(135deg, #00ff96, #2ecc71); margin: 1rem auto; display: flex; align-items: center; justify-content: center; border-radius: 20px; }
+        .qr-code i { font-size: 5rem; color: white; }
+        footer { background: linear-gradient(180deg, transparent, #0a2e1c); padding: 2rem 5%; text-align: center; border-top: 1px solid rgba(0,255,150,0.1); }
+        .toast-notification { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #00ff96, #2ecc71); padding: 0.7rem 1.2rem; border-radius: 40px; color: #0a2e1c; font-weight: 600; font-size: 0.8rem; z-index: 2000; animation: toastSlide 0.3s ease; white-space: nowrap; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        @keyframes toastSlide { from { transform: translateX(-50%) translateY(100px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+        @media (max-width: 768px) { 
+            .hero { flex-direction: column; text-align: center; } 
+            .hero-left { text-align: center; } 
+            .hero-left p { max-width: 100%; } 
+            .hero-stats { justify-content: center; } 
+            .service-grid { grid-template-columns: 1fr; } 
+            .navbar { flex-direction: column; gap: 0.8rem; } 
+            .nav-links { justify-content: center; } 
+            .hero-left h1 { font-size: 2rem; }
+            .chat-panel { width: 300px; height: 450px; right: 0; bottom: 70px; }
+            .toast-notification { white-space: normal; text-align: center; max-width: 90%; font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="particles"></div>
+
+<nav class="navbar">
+    <div class="logo"><span>Volt</span><span>Ride</span> <span style="font-size: 0.7rem;">⚡ Aceh</span></div>
+    <div class="nav-links">
+        <a href="#home">Home</a>
+        <a href="#services">Layanan</a>
+        <a href="#booking">Booking</a>
+        <a href="#history">Riwayat</a>
+        <a href="#features">Fitur</a>
+        <div class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-sun"></i><span>Tema</span><i class="fas fa-moon"></i></div>
+        <button class="btn-cyber" onclick="showNotif('🚀 VoltRide Aceh launching soon!')"><i class="fas fa-bolt"></i> Get App</button>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section id="home" class="hero">
+    <div class="hero-left">
+        <div class="badge"><i class="fas fa-bolt"></i> 100% Electric | 23+ Kota di Aceh</div>
+        <h1>Mobility <span class="gradient-green">Reimagined</span><br>Untuk Seluruh Aceh</h1>
+        <p>VoltRide Aceh melayani 23+ kota/kabupaten di seluruh Aceh. Tarif TRANSPARAN berdasarkan jarak tempuh. Cukup pilih lokasi, TARIF LANGSUNG TERHITUNG!</p>
+        <div class="hero-stats">
+            <div class="stat-card"><div class="stat-number" id="totalRidesStat">0</div><div>Total Perjalanan</div></div>
+            <div class="stat-card"><div class="stat-number">23+</div><div>Kota di Aceh</div></div>
+            <div class="stat-card"><div class="stat-number">Rp2.500</div><div>Tarif/km</div></div>
+        </div>
+        <button class="btn-cyber" onclick="document.getElementById('booking').scrollIntoView({behavior: 'smooth'})"><i class="fas fa-charging-station"></i> Pesan Sekarang</button>
+    </div>
+    <div class="hero-right">
+        <div class="car-card"><div class="car-3d"><i class="fas fa-car-side"></i></div><h3 style="margin: 0.5rem 0;">VoltRide EV</h3><p style="font-size: 0.7rem;">Melayani 23+ Kota di Aceh</p></div>
+    </div>
+</section>
+
+<!-- Services -->
+<section id="services" class="services">
+    <div class="section-title">Layanan & <span class="gradient-green">Tarif per KM</span></div>
+    <div class="service-grid">
+        <div class="service-card" onclick="selectService('moto')"><div class="service-icon"><i class="fas fa-motorcycle"></i></div><h3>VoltRide Moto</h3><p style="color:#00ff96; font-weight:700;">Rp 2.500 / km</p></div>
+        <div class="service-card" onclick="selectService('car')"><div class="service-icon"><i class="fas fa-car"></i></div><h3>VoltRide Car</h3><p style="color:#00ff96; font-weight:700;">Rp 4.500 / km</p></div>
+        <div class="service-card" onclick="selectService('food')"><div class="service-icon"><i class="fas fa-utensils"></i></div><h3>VoltFood</h3><p style="color:#00ff96; font-weight:700;">Rp 3.000 / km</p><p style="font-size:0.6rem;">+ biaya makanan Rp5.000</p></div>
+        <div class="service-card" onclick="selectService('send')"><div class="service-icon"><i class="fas fa-box"></i></div><h3>VoltSend</h3><p style="color:#00ff96; font-weight:700;">Rp 3.500 / km</p></div>
+    </div>
+</section>
+
+<!-- Booking Section -->
+<section id="booking" class="booking-section">
+    <div class="booking-widget">
+        <h2>⚡ Booking VoltRide</h2>
+        <div class="map-container"><div id="routeMap"></div></div>
+        
+        <select id="pickup" class="input-modern" onchange="hitungJarak()">
+            <option value="Banda Aceh">📍 Banda Aceh</option>
+            <option value="Aceh Besar">📍 Aceh Besar</option>
+            <option value="Lhokseumawe">📍 Lhokseumawe</option>
+            <option value="Langsa">📍 Langsa</option>
+            <option value="Meulaboh">📍 Meulaboh</option>
+            <option value="Takengon">📍 Takengon</option>
+            <option value="Tapaktuan">📍 Tapaktuan</option>
+            <option value="Singkil">📍 Singkil</option>
+            <option value="Kutacane">📍 Kutacane</option>
+            <option value="Calang">📍 Calang</option>
+            <option value="Jantho">📍 Jantho</option>
+            <option value="Sabang">📍 Sabang</option>
+            <option value="Sigli">📍 Sigli</option>
+            <option value="Bireuen">📍 Bireuen</option>
+            <option value="Idi Rayeuk">📍 Idi Rayeuk</option>
+            <option value="Blangkejeren">📍 Blangkejeren</option>
+        </select>
+        
+        <select id="destination" class="input-modern" onchange="hitungJarak()">
+            <option value="Banda Aceh">🎯 Banda Aceh</option>
+            <option value="Aceh Besar">🎯 Aceh Besar</option>
+            <option value="Lhokseumawe">🎯 Lhokseumawe</option>
+            <option value="Langsa">🎯 Langsa</option>
+            <option value="Meulaboh">🎯 Meulaboh</option>
+            <option value="Takengon">🎯 Takengon</option>
+            <option value="Tapaktuan">🎯 Tapaktuan</option>
+            <option value="Singkil">🎯 Singkil</option>
+            <option value="Kutacane">🎯 Kutacane</option>
+            <option value="Calang">🎯 Calang</option>
+            <option value="Jantho">🎯 Jantho</option>
+            <option value="Sabang">🎯 Sabang</option>
+            <option value="Sigli">🎯 Sigli</option>
+            <option value="Bireuen">🎯 Bireuen</option>
+            <option value="Idi Rayeuk">🎯 Idi Rayeuk</option>
+            <option value="Blangkejeren">🎯 Blangkejeren</option>
+        </select>
+        
+        <div class="distance-info">
+            <span><i class="fas fa-route"></i> Jarak Tempuh:</span>
+            <span id="distanceDisplay" style="font-weight:700; color:#00ff96;">0 km</span>
+        </div>
+        
+        <select id="serviceType" class="input-modern" onchange="updateTarif()">
+            <option value="moto">🛵 VoltRide Moto - Rp 2.500/km</option>
+            <option value="car">🚗 VoltRide Car - Rp 4.500/km</option>
+            <option value="food">🍛 VoltFood - Rp 3.000/km + biaya makanan</option>
+            <option value="send">📦 VoltSend - Rp 3.500/km</option>
+        </select>
+        
+        <!-- PAYMENT SECTION -->
+        <div class="payment-section">
+            <div class="payment-title"><i class="fas fa-credit-card"></i> Metode Pembayaran</div>
+            <div class="payment-options">
+                <div class="payment-option active" data-payment="dana" onclick="selectPayment('dana')"><i class="fas fa-wallet"></i> DANA</div>
+                <div class="payment-option" data-payment="cash" onclick="selectPayment('cash')"><i class="fas fa-money-bill-wave"></i> Tunai</div>
+            </div>
+        </div>
+        
+        <!-- NOTES PANEL -->
+        <div class="notes-panel">
+            <div class="notes-header"><i class="fas fa-pen-alt"></i><span>Catatan untuk Driver (Opsional)</span></div>
+            <div class="notes-options">
+                <div class="note-chip" data-note="🕌 Dekat Masjid Raya">🕌 Dekat Masjid</div>
+                <div class="note-chip" data-note="🏖️ Menuju pantai">🏖️ Menuju pantai</div>
+                <div class="note-chip" data-note="📦 Bawa oleh-oleh">📦 Bawa oleh-oleh</div>
+                <div class="note-chip" data-note="🛵 Jalan gang sempit">🛵 Jalan gang</div>
+                <div class="note-chip" data-note="👨‍👩‍👧 Bawa keluarga">👨‍👩‍👧 Keluarga</div>
+            </div>
+            <div class="custom-note">
+                <input type="text" id="customNoteInput" placeholder="✏️ Tulis catatan sendiri...">
+                <button onclick="addCustomNote()">Tambah</button>
+            </div>
+            <div class="selected-notes" id="selectedNotesContainer">
+                <div class="selected-notes-title"><i class="fas fa-clipboard-list"></i> Catatan terpilih:</div>
+                <div id="notesList"></div>
+            </div>
+        </div>
+        
+        <div class="price-tag" id="priceDisplay" onclick="processPayment()">
+            💰 Total Tarif: Menghitung...
+            <div class="price-detail">Klik untuk bayar via DANA</div>
+        </div>
+        
+        <button class="btn-cyber" onclick="showOrderSummary()" style="width: 100%;"><i class="fas fa-bolt"></i> Pesan Sekarang</button>
+        <p style="text-align: center; margin-top: 0.8rem; font-size: 0.65rem; color: #888;"><i class="fas fa-leaf"></i> Setiap perjalanan -2kg CO2 + tanam 1 pohon mangrove</p>
+    </div>
+</section>
+
+<!-- DANA QR Payment Modal -->
+<div class="dana-qr-modal" id="danaQrModal">
+    <div class="qr-card">
+        <i class="fas fa-wallet"></i>
+        <h3>Pembayaran via DANA</h3>
+        <p style="margin: 0.5rem 0;">Scan QR Code untuk membayar</p>
+        <div class="qr-code"><i class="fas fa-qrcode"></i></div>
+        <p id="qrTotalPrice" style="font-weight: bold; margin: 0.5rem 0;">Rp 0</p>
+        <button class="btn-cyber" onclick="simulateDanaPayment()" style="width: 100%; margin-top: 1rem;">Simulasi Bayar</button>
+        <button onclick="closeDanaModal()" style="background: none; border: none; color: #888; margin-top: 0.5rem; cursor: pointer;">Tutup</button>
+    </div>
+</div>
+
+<!-- RIWAYAT -->
+<section id="history" class="history-section">
+    <div class="history-container">
+        <div class="history-header">
+            <div class="history-title"><i class="fas fa-history" style="color: #00ff96;"></i> Riwayat Pemesanan</div>
+            <button class="clear-btn" onclick="clearAllHistory()"><i class="fas fa-trash-alt"></i> Hapus Semua</button>
+        </div>
+        <div class="history-list" id="historyList"><div class="empty-history"><i class="fas fa-clock" style="font-size: 2rem; opacity: 0.5;"></i><p>Belum ada riwayat pemesanan</p></div></div>
+    </div>
+</section>
+
+<!-- Mangrove -->
+<section class="mangrove-section">
+    <div class="mangrove-card">
+        <i class="fas fa-tree"></i>
+        <h3>🌿 Program Mangrove Aceh</h3>
+        <p>Setiap perjalanan = 1 pohon mangrove di pesisir Aceh</p>
+        <div class="mangrove-counter" id="mangroveCounter">1.247</div>
+        <p>Target: 50.000 pohon | 20 hektar pesisir</p>
+    </div>
+</section>
+
+<!-- Features -->
+<section id="features" class="services">
+    <div class="section-title">Kenapa <span class="gradient-green">VoltRide</span>?</div>
+    <div class="features-grid">
+        <div class="feature-item"><div class="feature-icon"><i class="fas fa-map-marker-alt"></i></div><h3>23+ Kota di Aceh</h3><p>Melayani seluruh Aceh</p></div>
+        <div class="feature-item"><div class="feature-icon"><i class="fas fa-tag"></i></div><h3>Tarif per KM</h3><p>Bayar sesuai jarak</p></div>
+        <div class="feature-item"><div class="feature-icon"><i class="fas fa-wallet"></i></div><h3>Pembayaran DANA</h3><p>QR Code payment</p></div>
+        <div class="feature-item"><div class="feature-icon"><i class="fas fa-robot"></i></div><h3>AI Chat Support</h3><p>Chat cerdas 24/7</p></div>
+    </div>
+</section>
+
+<footer>
+    <div style="font-size: 1.3rem; font-weight: 800;"><span style="color:#00ff96;">Volt</span><span style="color:#2ecc71;">Ride</span> Aceh</div>
+    <p>Melayani 23+ Kota di Aceh | Pembayaran DANA | Chat AI</p>
+    <p style="margin-top: 1rem; font-size: 0.7rem; color:#666;">&copy; 2025 VoltRide Aceh</p>
+</footer>
+
+<!-- CHAT WIDGET -->
+<div class="chat-widget">
+    <div class="chat-button" onclick="toggleChat()"><i class="fas fa-comment-dots"></i></div>
+    <div class="chat-panel" id="chatPanel">
+        <div class="chat-header"><span><i class="fas fa-robot"></i> VoltRide AI Assistant</span><i class="fas fa-times" style="cursor: pointer;" onclick="toggleChat()"></i></div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-message driver">🤖 Halo! Saya Asisten VoltRide. Ada yang bisa saya bantu?</div>
+            <div class="chat-message driver">💡 Saya bisa membantu: cek tarif, info layanan, promo, atau bantuan pemesanan.</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" placeholder="Tanya sesuatu...">
+            <button onclick="sendChatMessage()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+</div>
+
+<!-- Order Summary Modal -->
+<div class="order-summary" id="orderSummary">
+    <div class="summary-card">
+        <div class="summary-header"><i class="fas fa-check-circle"></i><h2>Pesanan Berhasil!</h2><p style="font-size: 0.7rem;">Driver EV menuju lokasi Anda</p></div>
+        <div class="summary-detail" id="summaryDetail"></div>
+        <button class="close-summary" onclick="confirmOrder()"><i class="fas fa-check"></i> Konfirmasi</button>
+    </div>
+</div>
+
+<script>
+    // ============ DATA ============
+    let orderHistory = [];
+    let selectedNotes = [];
+    let mangroveCount = 1247;
+    let tempOrderData = null;
+    let currentDistance = 0;
+    let currentTotalPrice = 0;
+    let selectedPayment = "dana";
+    let map;
+    
+    // Database jarak antar kota di Aceh (dalam km)
+    const jarakAceh = {
+        "Banda Aceh": { "Aceh Besar": 15, "Lhokseumawe": 320, "Langsa": 420, "Meulaboh": 240, "Takengon": 230, "Tapaktuan": 280, "Singkil": 380, "Kutacane": 350, "Calang": 150, "Jantho": 35, "Sabang": 45, "Sigli": 110, "Bireuen": 180, "Idi Rayeuk": 370, "Blangkejeren": 310 },
+        "Aceh Besar": { "Banda Aceh": 15, "Lhokseumawe": 310, "Langsa": 410, "Meulaboh": 230, "Takengon": 220, "Tapaktuan": 270, "Singkil": 370, "Kutacane": 340, "Calang": 140, "Jantho": 20, "Sabang": 55, "Sigli": 100, "Bireuen": 170, "Idi Rayeuk": 360, "Blangkejeren": 300 },
+        "Lhokseumawe": { "Banda Aceh": 320, "Aceh Besar": 310, "Langsa": 110, "Meulaboh": 400, "Takengon": 150, "Tapaktuan": 450, "Singkil": 520, "Kutacane": 280, "Calang": 380, "Jantho": 320, "Sabang": 365, "Sigli": 210, "Bireuen": 60, "Idi Rayeuk": 90, "Blangkejeren": 220 },
+        "Langsa": { "Banda Aceh": 420, "Aceh Besar": 410, "Lhokseumawe": 110, "Meulaboh": 500, "Takengon": 260, "Tapaktuan": 550, "Singkil": 620, "Kutacane": 280, "Calang": 480, "Jantho": 420, "Sabang": 465, "Sigli": 310, "Bireuen": 160, "Idi Rayeuk": 40, "Blangkejeren": 350 },
+        "Meulaboh": { "Banda Aceh": 240, "Aceh Besar": 230, "Lhokseumawe": 400, "Langsa": 500, "Takengon": 280, "Tapaktuan": 180, "Singkil": 160, "Kutacane": 350, "Calang": 90, "Jantho": 220, "Sabang": 285, "Sigli": 250, "Bireuen": 320, "Idi Rayeuk": 480, "Blangkejeren": 300 },
+        "Takengon": { "Banda Aceh": 230, "Aceh Besar": 220, "Lhokseumawe": 150, "Langsa": 260, "Meulaboh": 280, "Tapaktuan": 380, "Singkil": 420, "Kutacane": 180, "Calang": 250, "Jantho": 220, "Sabang": 275, "Sigli": 180, "Bireuen": 150, "Idi Rayeuk": 240, "Blangkejeren": 120 },
+        "Tapaktuan": { "Banda Aceh": 280, "Aceh Besar": 270, "Lhokseumawe": 450, "Langsa": 550, "Meulaboh": 180, "Takengon": 380, "Singkil": 120, "Kutacane": 250, "Calang": 150, "Jantho": 260, "Sabang": 325, "Sigli": 290, "Bireuen": 360, "Idi Rayeuk": 520, "Blangkejeren": 320 },
+        "Singkil": { "Banda Aceh": 380, "Aceh Besar": 370, "Lhokseumawe": 520, "Langsa": 620, "Meulaboh": 160, "Takengon": 420, "Tapaktuan": 120, "Kutacane": 280, "Calang": 130, "Jantho": 360, "Sabang": 425, "Sigli": 390, "Bireuen": 460, "Idi Rayeuk": 590, "Blangkejeren": 350 },
+        "Kutacane": { "Banda Aceh": 350, "Aceh Besar": 340, "Lhokseumawe": 280, "Langsa": 280, "Meulaboh": 350, "Takengon": 180, "Tapaktuan": 250, "Singkil": 280, "Calang": 320, "Jantho": 340, "Sabang": 395, "Sigli": 300, "Bireuen": 270, "Idi Rayeuk": 260, "Blangkejeren": 100 },
+        "Calang": { "Banda Aceh": 150, "Aceh Besar": 140, "Lhokseumawe": 380, "Langsa": 480, "Meulaboh": 90, "Takengon": 250, "Tapaktuan": 150, "Singkil": 130, "Kutacane": 320, "Jantho": 130, "Sabang": 195, "Sigli": 160, "Bireuen": 230, "Idi Rayeuk": 390, "Blangkejeren": 280 },
+        "Jantho": { "Banda Aceh": 35, "Aceh Besar": 20, "Lhokseumawe": 320, "Langsa": 420, "Meulaboh": 220, "Takengon": 220, "Tapaktuan": 260, "Singkil": 360, "Kutacane": 340, "Calang": 130, "Sabang": 80, "Sigli": 90, "Bireuen": 160, "Idi Rayeuk": 350, "Blangkejeren": 310 },
+        "Sabang": { "Banda Aceh": 45, "Aceh Besar": 55, "Lhokseumawe": 365, "Langsa": 465, "Meulaboh": 285, "Takengon": 275, "Tapaktuan": 325, "Singkil": 425, "Kutacane": 395, "Calang": 195, "Jantho": 80, "Sigli": 135, "Bireuen": 205, "Idi Rayeuk": 395, "Blangkejeren": 365 },
+        "Sigli": { "Banda Aceh": 110, "Aceh Besar": 100, "Lhokseumawe": 210, "Langsa": 310, "Meulaboh": 250, "Takengon": 180, "Tapaktuan": 290, "Singkil": 390, "Kutacane": 300, "Calang": 160, "Jantho": 90, "Sabang": 135, "Bireuen": 70, "Idi Rayeuk": 240, "Blangkejeren": 270 },
+        "Bireuen": { "Banda Aceh": 180, "Aceh Besar": 170, "Lhokseumawe": 60, "Langsa": 160, "Meulaboh": 320, "Takengon": 150, "Tapaktuan": 360, "Singkil": 460, "Kutacane": 270, "Calang": 230, "Jantho": 160, "Sabang": 205, "Sigli": 70, "Idi Rayeuk": 130, "Blangkejeren": 240 },
+        "Idi Rayeuk": { "Banda Aceh": 370, "Aceh Besar": 360, "Lhokseumawe": 90, "Langsa": 40, "Meulaboh": 480, "Takengon": 240, "Tapaktuan": 520, "Singkil": 590, "Kutacane": 260, "Calang": 390, "Jantho": 350, "Sabang": 395, "Sigli": 240, "Bireuen": 130, "Blangkejeren": 330 },
+        "Blangkejeren": { "Banda Aceh": 310, "Aceh Besar": 300, "Lhokseumawe": 220, "Langsa": 350, "Meulaboh": 300, "Takengon": 120, "Tapaktuan": 320, "Singkil": 350, "Kutacane": 100, "Calang": 280, "Jantho": 310, "Sabang": 365, "Sigli": 270, "Bireuen": 240, "Idi Rayeuk": 330 }
+    };
+    
+    // Tarif per KM
+    const tarif = {
+        moto: { name: "VoltRide Moto", rate: 2500, icon: "🛵" },
+        car: { name: "VoltRide Car", rate: 4500, icon: "🚗" },
+        food: { name: "VoltFood", rate: 3000, icon: "🍛", extra: 5000 },
+        send: { name: "VoltSend", rate: 3500, icon: "📦" }
+    };
+    
+    // AI Chat Response
+    const chatResponses = {
+        "halo": "Halo! Selamat datang di VoltRide Aceh. Ada yang bisa saya bantu?",
+        "hai": "Hai! Ada yang bisa saya bantu?",
+        "tarif": "Tarif VoltRide: Moto Rp2.500/km, Car Rp4.500/km, Food Rp3.000/km (+Rp5.000), Send Rp3.500/km",
+        "harga": "Tarif VoltRide: Moto Rp2.500/km, Car Rp4.500/km, Food Rp3.000/km (+Rp5.000), Send Rp3.500/km",
+        "layanan": "Kami melayani: VoltRide Moto, VoltRide Car, VoltFood, VoltSend. Melayani 23+ kota di Aceh!",
+        "promo": "Saat ini ada promo: Setiap perjalanan menanam 1 pohon mangrove! 🌿",
+        "cara pesan": "Cara pesan: 1. Pilih lokasi jemput & tujuan, 2. Pilih layanan, 3. Klik Pesan Sekarang",
+        "dana": "Pembayaran via DANA tersedia. Klik total tarif untuk membayar dengan QR Code DANA.",
+        "pembayaran": "Kami menerima pembayaran DANA (QR Code) dan Tunai.",
+        "help": "Saya bisa membantu info tarif, layanan, cara pemesanan, dan promo. Ada yang bisa dibantu?",
+        "makasih": "Sama-sama! Terima kasih sudah menggunakan VoltRide Aceh 😊",
+        "terima kasih": "Sama-sama! Terima kasih sudah menggunakan VoltRide Aceh 😊",
+        "bye": "Terima kasih! Sampai jumpa kembali di VoltRide Aceh 👋",
+        "default": "Terima kasih pertanyaannya. Saya bisa bantu info tarif, layanan, cara pemesanan, dan promo. Ketik 'help' untuk bantuan."
+    };
+    
+    // ============ FUNGSI UTAMA ============
+    function hitungJarak() {
+        let pickup = document.getElementById('pickup').value;
+        let dest = document.getElementById('destination').value;
+        
+        if (pickup === dest) {
+            currentDistance = 0;
+            document.getElementById('distanceDisplay').innerHTML = '0 km (lokasi sama)';
+            updateTarif();
+            return;
+        }
+        
+        currentDistance = jarakAceh[pickup]?.[dest] || jarakAceh[dest]?.[pickup] || Math.floor(Math.random() * 100) + 50;
+        document.getElementById('distanceDisplay').innerHTML = currentDistance + ' km';
+        
+        updateMap(pickup, dest);
+        updateTarif();
+    }
+    
+    function updateMap(pickup, dest) {
+        if (!map) return;
+        // Simulasi peta dengan marker sederhana
+        map.setView([5.5483, 95.3238], 8);
+    }
+    
+    function updateTarif() {
+        let service = document.getElementById('serviceType').value;
+        let data = tarif[service];
+        
+        currentTotalPrice = currentDistance * data.rate;
+        let detail = currentDistance + ' km × ' + data.rate.toLocaleString() + '/km = Rp ' + (currentDistance * data.rate).toLocaleString();
+        
+        if (service === 'food') {
+            currentTotalPrice += 5000;
+            detail += ' + biaya makanan Rp5.000 = Rp ' + currentTotalPrice.toLocaleString();
+        }
+        
+        currentTotalPrice = Math.round(currentTotalPrice);
+        
+        document.getElementById('priceDisplay').innerHTML = `💰 Total Tarif: Rp ${currentTotalPrice.toLocaleString()}<div class="price-detail">${detail} | Klik untuk bayar via DANA</div>`;
+    }
+    
+    // ============ DANA PAYMENT ============
+    function processPayment() {
+        if (selectedPayment === 'dana') {
+            if (currentTotalPrice > 0 && currentDistance > 0) {
+                document.getElementById('qrTotalPrice').innerHTML = `Rp ${currentTotalPrice.toLocaleString()}`;
+                document.getElementById('danaQrModal').classList.add('active');
+            } else {
+                showNotif('⚠️ Pilih lokasi jemput dan tujuan terlebih dahulu!');
+            }
+        } else {
+            showNotif('💵 Pembayaran Tunai akan dilakukan saat driver tiba');
+            showOrderSummary();
+        }
+    }
+    
+    function simulateDanaPayment() {
+        document.getElementById('danaQrModal').classList.remove('active');
+        showNotif(`✅ Pembayaran Rp ${currentTotalPrice.toLocaleString()} via DANA berhasil!`);
+        setTimeout(() => {
+            showOrderSummary();
+        }, 500);
+    }
+    
+    function closeDanaModal() {
+        document.getElementById('danaQrModal').classList.remove('active');
+    }
+    
+    // ============ EVENT LISTENER ============
+    function selectPayment(method) {
+        selectedPayment = method;
+        document.querySelectorAll('.payment-option').forEach(opt => opt.classList.remove('active'));
+        document.querySelector(`.payment-option[data-payment="${method}"]`).classList.add('active');
+        showNotif(method === 'dana' ? '💳 Pembayaran via DANA dipilih' : '💵 Pembayaran Tunai dipilih');
+    }
+    
+    function selectService(service) {
+        document.getElementById('serviceType').value = service;
+        updateTarif();
+        showNotif(`✅ ${tarif[service].name} dipilih - Rp ${tarif[service].rate.toLocaleString()}/km`);
+    }
+    
+    // ============ MAP ============
+    function initMap() {
+        map = L.map('routeMap').setView([4.8, 96.5], 8);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+        }).addTo(map);
+        
+        // Marker untuk Banda Aceh
+        L.marker([5.5483, 95.3238]).addTo(map).bindPopup('📍 Banda Aceh');
+        L.marker([4.8, 96.5]).addTo(map).bindPopup('📍 Aceh Tengah');
+        hitungJarak();
+    }
+    
+    // ============ AI CHAT ============
+    function toggleChat() {
+        document.getElementById('chatPanel').classList.toggle('active');
+    }
+    
+    function getAIResponse(message) {
+        const lowerMsg = message.toLowerCase();
+        for (let [key, response] of Object.entries(chatResponses)) {
+            if (lowerMsg.includes(key)) {
+                return response;
+            }
+        }
+        return chatResponses["default"];
+    }
+    
+    function sendChatMessage() {
+        let input = document.getElementById('chatInput');
+        let msg = input.value.trim();
+        if (!msg) return;
+        
+        let container = document.getElementById('chatMessages');
+        let userMsg = document.createElement('div');
+        userMsg.className = 'chat-message user';
+        userMsg.innerHTML = msg;
+        container.appendChild(userMsg);
+        container.scrollTop = container.scrollHeight;
+        input.value = '';
+        
+        setTimeout(() => {
+            let reply = document.createElement('div');
+            reply.className = 'chat-message driver';
+            let aiResponse = getAIResponse(msg);
+            reply.innerHTML = '🤖 ' + aiResponse;
+            container.appendChild(reply);
+            container.scrollTop = container.scrollHeight;
+        }, 500);
+    }
+    
+    // ============ HISTORY ============
+    function loadHistory() {
+        let saved = localStorage.getItem('voltRideHistory');
+        if (saved) orderHistory = JSON.parse(saved);
+        let savedMangrove = localStorage.getItem('voltRideMangrove');
+        if (savedMangrove) mangroveCount = parseInt(savedMangrove);
+        updateHistoryDisplay();
+        document.getElementById('mangroveCounter').innerText = mangroveCount.toLocaleString();
+        document.getElementById('totalRidesStat').innerText = orderHistory.length;
+    }
+    
+    function saveHistory() {
+        localStorage.setItem('voltRideHistory', JSON.stringify(orderHistory));
+        localStorage.setItem('voltRideMangrove', mangroveCount);
+        document.getElementById('totalRidesStat').innerText = orderHistory.length;
+    }
+    
+    function updateHistoryDisplay() {
+        let container = document.getElementById('historyList');
+        if (orderHistory.length === 0) {
+            container.innerHTML = '<div class="empty-history"><i class="fas fa-clock" style="font-size: 2rem; opacity: 0.5;"></i><p>Belum ada riwayat pemesanan</p></div>';
+            return;
+        }
+        container.innerHTML = orderHistory.slice().reverse().map(order => `
+            <div class="history-item">
+                <div class="history-item-header"><span class="history-service">${order.icon} ${order.service}</span><span class="history-date">${order.date}</span></div>
+                <div class="history-route">📍 ${order.pickup} → ${order.destination}</div>
+                <div class="history-route">📏 Jarak: ${order.distance} km</div>
+                <div class="history-price">💰 ${order.price}</div>
+                <div class="history-route">💳 ${order.payment}</div>
+                ${order.notes ? `<div class="history-notes"><i class="fas fa-pen-alt"></i> ${order.notes.join(' • ')}</div>` : ''}
+                <div style="font-size:0.65rem; color:#00ff96; margin-top:0.3rem;">🌿 -2kg CO2 + 1 pohon mangrove</div>
+            </div>
+        `).join('');
+    }
+    
+    function clearAllHistory() {
+        if (confirm('Hapus semua riwayat?')) {
+            orderHistory = [];
+            saveHistory();
+            updateHistoryDisplay();
+            showNotif('🗑️ Semua riwayat dihapus');
+        }
+    }
+    
+    // ============ NOTES ============
+    document.querySelectorAll('.note-chip').forEach(chip => {
+        chip.addEventListener('click', function() {
+            let note = this.getAttribute('data-note');
+            if (!selectedNotes.includes(note)) {
+                selectedNotes.push(note);
+                this.classList.add('active');
+            } else {
+                selectedNotes = selectedNotes.filter(n => n !== note);
+                this.classList.remove('active');
+            }
+            updateNotesDisplay();
+        });
+    });
+    
+    function addCustomNote() {
+        let input = document.getElementById('customNoteInput');
+        let note = input.value.trim();
+        if (note && !selectedNotes.includes(note)) {
+            selectedNotes.push(note);
+            updateNotesDisplay();
+            input.value = '';
+            showNotif('📝 Catatan ditambahkan');
+        }
+    }
+    
+    function removeNote(note) {
+        selectedNotes = selectedNotes.filter(n => n !== note);
+        document.querySelectorAll('.note-chip').forEach(chip => {
+            if (chip.getAttribute('data-note') === note) chip.classList.remove('active');
+        });
+        updateNotesDisplay();
+    }
+    
+    function updateNotesDisplay() {
+        let container = document.getElementById('notesList');
+        if (selectedNotes.length === 0) {
+            container.innerHTML = '<span style="color:#666;">Belum ada catatan</span>';
+        } else {
+            container.innerHTML = selectedNotes.map(n => `<span class="note-tag" onclick="removeNote('${n.replace(/'/g, "\\'")}')"><i class="fas fa-times-circle"></i> ${n}</span>`).join('');
+        }
+    }
+    
+    // ============ ORDER ============
+    function showOrderSummary() {
+        let pickup = document.getElementById('pickup').options[document.getElementById('pickup').selectedIndex]?.text || document.getElementById('pickup').value;
+        let dest = document.getElementById('destination').options[document.getElementById('destination').selectedIndex]?.text || document.getElementById('destination').value;
+        let serviceVal = document.getElementById('serviceType').value;
+        let data = tarif[serviceVal];
+        
+        if (currentDistance === 0) {
+            showNotif('⚠️ Pilih lokasi jemput dan tujuan terlebih dahulu!');
+            return;
+        }
+        
+        tempOrderData = {
+            pickup: pickup,
+            destination: dest,
+            service: data.name,
+            icon: data.icon,
+            price: `Rp ${currentTotalPrice.toLocaleString()}`,
+            distance: currentDistance,
+            payment: selectedPayment === 'dana' ? 'DANA' : 'Tunai',
+            notes: [...selectedNotes],
+            date: new Date().toLocaleDateString('id-ID') + ' ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+        };
+        
+        document.getElementById('summaryDetail').innerHTML = `
+            <div><strong>📋 Detail Pemesanan:</strong></div>
+            <div>📍 Dari: ${pickup}</div>
+            <div>🎯 Ke: ${dest}</div>
+            <div>🚗 ${data.name}</div>
+            <div>📏 Jarak: ${currentDistance} km</div>
+            <div>💳 ${tempOrderData.payment}</div>
+            <div style="font-size:1.2rem; margin:0.5rem 0;">💰 ${tempOrderData.price}</div>
+            ${selectedNotes.length ? `<div><strong>📝 Catatan:</strong><br>${selectedNotes.map(n => `📌 ${n}`).join('<br>')}</div>` : ''}
+            <div>🌿 -2kg CO2 + 1 pohon mangrove</div>
+            <div>⏱️ ETA: 2-3 menit</div>
+        `;
+        document.getElementById('orderSummary').classList.add('active');
+    }
+    
+    function confirmOrder() {
+        if (tempOrderData) {
+            orderHistory.push(tempOrderData);
+            mangroveCount++;
+            saveHistory();
+            updateHistoryDisplay();
+            document.getElementById('mangroveCounter').innerText = mangroveCount.toLocaleString();
+            showNotif(`✅ Pesanan dikonfirmasi! ${tempOrderData.price}`);
+            
+            setTimeout(() => {
+                selectedNotes = [];
+                updateNotesDisplay();
+                tempOrderData = null;
+            }, 500);
+        }
+        document.getElementById('orderSummary').classList.remove('active');
+    }
+    
+    // ============ THEME & NOTIF ============
+    function toggleTheme() {
+        document.body.classList.toggle('light-theme');
+        localStorage.setItem('voltrideTheme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
+        showNotif(document.body.classList.contains('light-theme') ? '🌞 Mode Terang' : '🌙 Mode Gelap');
+    }
+    
+    function showNotif(msg) {
+        let n = document.createElement('div');
+        n.className = 'toast-notification';
+        n.innerHTML = `<i class="fas fa-check-circle"></i> ${msg}`;
+        document.body.appendChild(n);
+        setTimeout(() => {
+            n.style.animation = 'toastSlide 0.3s ease reverse';
+            setTimeout(() => n.remove(), 300);
+        }, 2500);
+    }
+    
+    if (localStorage.getItem('voltrideTheme') === 'light') document.body.classList.add('light-theme');
+    document.getElementById('chatInput').addEventListener('keypress', e => { if (e.key === 'Enter') sendChatMessage(); });
+    
+    // INIT
+    initMap();
+    loadHistory();
+</script>
+</body>
+</html>
